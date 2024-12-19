@@ -1,0 +1,1192 @@
+---
+title: "cell type assign"
+output: html_notebook
+---
+
+update
+v2.1 = integration 까지 진행
+v2.1.1 = meta.data
+        : "cell", "orig.ident", "nCount_RNA", "nFeature_RNA", "percent.mt", "nCount_SCT", "nFeature_SCT", "DFclass", 
+          "seurat_clusters", "harmony_clusters", "sample_barcode", "patient_barcode", "sample_type", "sequence_type", "infercnv_annot",
+          "S.Score", "G2M.Score", "Phase")
+
+```{r}
+version_num = "v2.4"
+
+pkgs = c("Seurat",   
+         "dplyr", "plyr", "tibble", "ggplot2", "RColorBrewer", "future")
+lapply(pkgs, library, character.only = TRUE)
+options(future.globals.maxSize = 20*1024^3)
+
+integrated = readRDS(sprintf("/Volumes/WindySSD/YUGBM_OC/cellranger/%s/sct_integrated_%s.RDS", version_num, version_num))
+# saveRDS(integrated, "/Users/home/Desktop/project/gbmoc/data/merge/sct_integrated_v2.1.1.RDS")
+# saveRDS(integrated, "/Users/home/Desktop/project/gbmoc/data/merge/sct_integrated_v2.2.1.RDS")
+
+# ------------------------------------------------------------------------------------------------------------------------
+# v2.2
+# integrated@meta.data = integrated@meta.data %>% 
+#   mutate(sample_type = case_when(
+#     sample_barcode %in% c("GC14-C", "GN7-C") ~ "COR",
+#     sample_barcode %in% c("CN10-V", "CN9-V") ~ "cSVZ",
+#     sample_barcode %in% c("GN1-T", "GN15-T1", "GN16-T1", "GN17-T1",  
+#                           "GN2-T",  "GN3-T", "GN6-T", "GN7-T", "GN8-T") ~ "GBM",
+#     sample_barcode %in% c("GN1-V", "GN15-V", "GN16-V", "GN17-V", "GN2-V", "GN3-V", "GN6-V", "GN7-V" ) ~ "SVZ",
+#     TRUE ~ "tSVZ"
+#   ))
+# 
+# integrated@meta.data = integrated@meta.data %>% 
+#   mutate(sequence_type = case_when(
+#     sample_barcode %in% c("GC14-T") ~ "scRNA",
+#     sample_barcode %in% c("GN15-T1", "GN16-T1", "GN17-T1",
+#                           "GN15-V", "GN16-V", "GN17-V") ~ "snMO",
+#     TRUE ~ "snRNA"
+#   ))
+# ------------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------------------------
+# v2.3
+# sample_code = c("CN10-V", "CN9-V", 
+#                 "CN10-C", "CN11-C", 
+#                 "GN1-V", "GN1-T", 
+#                 "GN15-T1", "GN15-V", 
+#                 "GN16-T1", "GN16-V",
+#                 "GN17-T1", "GN17-V", 
+#                 "GN2-V", "GN2-T", 
+#                 "GN3-T", "GN3-V", 
+#                 "GN6-V", "GN6-T",
+#                 "GN7-C", "GN7-V", "GN7-T", 
+#                 "GN8-T", "GN8-V")
+
+integrated@meta.data = integrated@meta.data %>%
+  mutate(sample_type = case_when(
+    sample_barcode %in% c("GN7-C") ~ "COR",
+    sample_barcode %in% c("CN10-C", "CN11-C") ~ "cCOR",
+    sample_barcode %in% c("CN10-V", "CN9-V") ~ "cSVZ",
+    sample_barcode %in% c("GN8-V") ~ "tSVZ",
+    sample_barcode %in% c("GN1-V", "GN15-V", "GN16-V", "GN17-V", "GN2-V", "GN3-V", "GN6-V", "GN7-V" ) ~ "SVZ",
+    TRUE ~ "GBM"
+  ))
+
+integrated@meta.data = integrated@meta.data %>%
+  mutate(sequence_type = case_when(
+    sample_barcode %in% c("GN15-T1", "GN16-T1", "GN17-T1",
+                          "GN15-V", "GN16-V", "GN17-V") ~ "snMO",
+    TRUE ~ "snRNA"
+  ))
+# ------------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------------------------------------------------
+# v2.4
+# sample_code = c("CN10-V", "CN10-C", "CN11-C", "CN9-V", 
+#                 "GC14-C",
+#                 "GN1-V", "GN1-T", 
+#                 "GN15-T1", "GN15-V", 
+#                 "GN16-T1", "GN16-V",
+#                 "GN17-T1", "GN17-V", 
+#                 "GN2-V", "GN2-T", 
+#                 "GN3-T", "GN3-V", 
+#                 "GN6-V", "GN6-T",
+#                 "GN7-C", "GN7-V", "GN7-T", 
+#                 "GN8-T", "GN8-V")
+
+integrated@meta.data = integrated@meta.data %>%
+  mutate(sample_type = case_when(
+    sample_barcode %in% c("GN7-C", "GC14-C") ~ "COR",
+    sample_barcode %in% c("CN10-C", "CN11-C") ~ "cCOR",
+    sample_barcode %in% c("CN10-V", "CN9-V") ~ "cSVZ",
+    sample_barcode %in% c("GN8-V") ~ "tSVZ",
+    sample_barcode %in% c("GN1-V", "GN15-V", "GN16-V", "GN17-V", "GN2-V", "GN3-V", "GN6-V", "GN7-V" ) ~ "SVZ",
+    TRUE ~ "GBM"
+  ))
+
+integrated@meta.data = integrated@meta.data %>%
+  mutate(sequence_type = case_when(
+    sample_barcode %in% c("GN15-T1", "GN16-T1", "GN17-T1",
+                          "GN15-V", "GN16-V", "GN17-V") ~ "snMO",
+    TRUE ~ "snRNA"
+  ))
+# ------------------------------------------------------------------------------------------------------------------------
+integrated@meta.data = integrated@meta.data %>% 
+  mutate(cell = rownames(.)
+  )
+
+integrated@meta.data <- integrated@meta.data[, !grepl("^DF\\.classifications", colnames(integrated@meta.data))]
+integrated@meta.data <- integrated@meta.data[, !grepl("^pANN", colnames(integrated@meta.data))]
+
+head(integrated@meta.data)
+saveRDS(integrated, sprintf("/Volumes/WindySSD/YUGBM_OC/cellranger/%s/sct_integrated_%s.RDS", version_num, version_num))
+
+
+#table(integrated@meta.data$infercnv_annot, integrated@meta.data$sample_barcode)
+table(integrated@meta.data$orig.ident)
+length(unique(integrated@meta.data$patient_barcode)) # 12
+length(unique(integrated@meta.data$sample_barcode)) # 23
+table(integrated@meta.data$sample_barcode, integrated$sample_type)
+table(integrated@meta.data$sample_type, integrated@meta.data$seurat_clusters)
+table(integrated@meta.data$sample_barcode)
+```
+
+## Sample type, Sequence type, Sample barcode -> set levels 
+```{r}
+integrated$sample_type = factor(integrated$sample_type, levels=c("cSVZ", "SVZ", "tSVZ", "COR", "GBM"))
+integrated$sequence_type = factor(integrated$sequence_type, levels=c("snRNA", "scRNA", "snMO"))
+integrated$sample_barcode = factor(integrated$sample_barcode, levels=c("CN9-V", "CN10-V", "GN8-V", "GN8-T", 
+                                                                       "GN1-V", "GN2-V", "GN1-T", "GN2-T",
+                                                                       "GN3-V", "GN6-V", "GN3-T", "GN6-T",
+                                                                       "GN7-C", "GN7-V", "GN7-T", 
+                                                                       "GC14-C", ecy
+                                                                       "GN15-V", "GN16-V", "GN15-T1", "GN16-T1",
+                                                                       "GN17-V", "GN17-T1"))
+
+DimPlot(integrated, reduction="umap.harmony", group.by="seurat_clusters", split.by="sample_barcode", ncol=4) + NoLegend()
+DimPlot(integrated, reduction="umap.harmony", group.by="seurat_clusters", split.by="sequence_type") + NoLegend()
+
+DimPlot(integrated, reduction="umap.harmony", pt.size = 0.5, label = TRUE)
+```
+
+## Cell cycle score
+```{r}
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
+
+integrated = CellCycleScoring(integrated, s.features = s.genes, g2m.features = g2m.genes, set.ident = FALSE)
+DimPlot(integrated, reduction="umap.harmony", split.by="Phase")
+```
+
+## Infercnv input (with Immune reference)
+```{r}
+integrated@meta.data = integrated@meta.data %>% 
+  mutate(infercnv_annot = case_when(
+    seurat_clusters %in% c("6", "8", "25", "16") ~ "Ref",
+    TRUE ~ "Obs"
+  ))
+
+infercnv_annot_all = integrated@meta.data %>% select(c("cell", "sample_type", "infercnv_annot", "patient_barcode"))
+infercnv_ref = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% select(c("cell", "infercnv_annot"))
+
+infercnv_ref_GN8 = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% filter(patient_barcode == "GN8") %>% select(c("cell", "infercnv_annot"))
+infercnv_ref_GN7 = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% filter(patient_barcode == "GN7") %>% select(c("cell", "infercnv_annot"))
+infercnv_ref_GC14 = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% filter(patient_barcode == "GC14") %>% select(c("cell", "infercnv_annot"))
+
+infercnv_obs_SVZ = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(sample_type %in% c("cSVZ", "SVZ")) %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GBM = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(sample_type == "GBM") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_COR = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(sample_type == "COR") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GN8 = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(patient_barcode == "GN8") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GN7 = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(patient_barcode == "GN7") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GC14 = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(patient_barcode == "GC14") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+
+infercnv_ref_all_obs_SVZ = rbind(infercnv_ref, infercnv_obs_SVZ)
+infercnv_ref_all_obs_GBM = rbind(infercnv_ref, infercnv_obs_GBM)
+infercnv_ref_all_obs_COR = rbind(infercnv_ref, infercnv_obs_COR)
+infercnv_ref_all_obs_GN8 = rbind(infercnv_ref, infercnv_obs_GN8)
+infercnv_ref_GN8_obs_GN8 = rbind(infercnv_ref_GN8, infercnv_obs_GN8)
+infercnv_ref_GN7_obs_GN7 = rbind(infercnv_ref_GN7, infercnv_obs_GN7)
+infercnv_ref_GC14_obs_GC14 = rbind(infercnv_ref_GC14, infercnv_obs_GC14)
+
+table(infercnv_ref_GC14_obs_GC14$infercnv_annot)
+
+write.table(infercnv_ref_all_obs_SVZ , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_ref_all_obs_SVZ.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_all_obs_GBM , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_ref_all_obs_GBM.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_all_obs_COR , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_ref_all_obs_COR.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_all_obs_GN8 , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_ref_all_obs_GN8.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_GN8_obs_GN8 , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_ref_GN8_obs_GN8.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_GN7_obs_GN7 , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_ref_GN7_obs_GN7.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_GC14_obs_GC14, "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_ref_GC14_obs_GC14.txt", sep='\t', row.names=F, col.names=F, quote=F)
+
+write.table(as.matrix(integrated[["RNA"]]$counts),  "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Immune/infercnv_matrix_23samples.txt", sep='\t', row.names=T, col.names=T, quote=F)
+
+integrated = PrepSCTFindMarkers(integrated, assay="SCT", verbose=FALSE)
+```
+
+## Infercnv input (with Immune + Oligo reference)
+```{r}
+dataframe2 = integrated@meta.data %>% 
+  mutate(infercnv_annot = case_when(
+    seurat_clusters %in% c("6", "8", "25", "16", 
+                           "0", "1", "2", "5", "9", "14", "15", "30", "31") ~ "Ref",
+    TRUE ~ "Obs"
+  ))
+
+infercnv_annot_all = dataframe2 %>% select(c("cell", "sample_type", "infercnv_annot", "patient_barcode"))
+infercnv_ref = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% select(c("cell", "infercnv_annot"))
+
+infercnv_ref_GN8 = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% filter(patient_barcode == "GN8") %>% select(c("cell", "infercnv_annot"))
+infercnv_ref_GN7 = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% filter(patient_barcode == "GN7") %>% select(c("cell", "infercnv_annot"))
+infercnv_ref_GC14 = infercnv_annot_all %>% filter(infercnv_annot == "Ref") %>% filter(patient_barcode == "GC14") %>% select(c("cell", "infercnv_annot"))
+
+infercnv_obs_SVZ = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(sample_type %in% c("cSVZ", "SVZ")) %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GBM = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(sample_type == "GBM") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_COR = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(sample_type == "COR") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GN8 = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(patient_barcode == "GN8") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GN7 = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(patient_barcode == "GN7") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+infercnv_obs_GC14 = infercnv_annot_all %>% filter(infercnv_annot == "Obs") %>% filter(patient_barcode == "GC14") %>% select(c("cell", "sample_type")) %>% dplyr::rename("infercnv_annot" = "sample_type")
+
+infercnv_ref_all_obs_SVZ = rbind(infercnv_ref, infercnv_obs_SVZ)
+infercnv_ref_all_obs_GBM = rbind(infercnv_ref, infercnv_obs_GBM)
+infercnv_ref_all_obs_COR = rbind(infercnv_ref, infercnv_obs_COR)
+infercnv_ref_all_obs_GN8 = rbind(infercnv_ref, infercnv_obs_GN8)
+infercnv_ref_GN8_obs_GN8 = rbind(infercnv_ref_GN8, infercnv_obs_GN8)
+infercnv_ref_GN7_obs_GN7 = rbind(infercnv_ref_GN7, infercnv_obs_GN7)
+infercnv_ref_GC14_obs_GC14 = rbind(infercnv_ref_GC14, infercnv_obs_GC14)
+
+table(infercnv_ref_GC14_obs_GC14$infercnv_annot)
+
+write.table(infercnv_ref_all_obs_SVZ , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Oligo_Immune/infercnv_ref_all_obs_SVZ.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_all_obs_GBM , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Oligo_Immune/infercnv_ref_all_obs_GBM.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_all_obs_COR , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Oligo_Immune/infercnv_ref_all_obs_COR.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_all_obs_GN8 , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Oligo_Immune/infercnv_ref_all_obs_GN8.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_GN8_obs_GN8 , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Oligo_Immune/infercnv_ref_GN8_obs_GN8.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_GN7_obs_GN7 , "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Oligo_Immune/infercnv_ref_GN7_obs_GN7.txt", sep='\t', row.names=F, col.names=F, quote=F)
+write.table(infercnv_ref_GC14_obs_GC14, "/Users/home/Desktop/project/gbmoc/data/infercnv_input/Ref_Oligo_Immune/infercnv_ref_GC14_obs_GC14.txt", sep='\t', row.names=F, col.names=F, quote=F)
+```
+--여기까지 v2.1.1에 저장
+
+
+# Marker gene : top20 저장
+```{r}
+integrated <- PrepSCTFindMarkers(integrated)
+integrated.markers <- FindAllMarkers(integrated, only.pos = TRUE)
+integrated.markers %>%
+    group_by(cluster) %>%
+    dplyr::filter(avg_log2FC > 1) %>%
+    slice_head(n = 20) %>%
+    ungroup() -> top20
+
+write.table(top20, "/Users/home/Desktop/project/gbmoc/data/merge/sct_merged_v2.2_markergene.txt", sep='\t', quote=F, row.names=F, col.names=T)
+
+top20 = read.table("/Users/home/Desktop/project/gbmoc/data/merge/sct_merged_v2.2_markergene.txt", sep='\t', header=T)
+clusters <- 0:22
+markers <- map(clusters, ~ top20 %>% filter(cluster == as.character(.x)) %>% pull(gene))
+names(markers) <- sprintf("markers_%02d", clusters)
+
+# marker 확인 : markers[["markers_00"]]
+```
+
+```{r}
+library(purrr)
+
+# 클러스터 번호 정의
+clusters <- 0:22
+
+# 각 클러스터의 마커를 저장하는 리스트 생성
+cluster_markers <- map(clusters, ~ FindMarkers(
+  integrated,
+  ident.1 = .x, # 현재 클러스터 번호
+  logfc.threshold = 0.25,
+  test.use = "roc",
+  only.pos = TRUE
+))
+
+# 리스트에 클러스터 이름 부여
+names(cluster_markers) <- sprintf("cluster%d.markers", clusters)
+
+# 결과 확인 (예: cluster3.markers)
+# cluster_markers[["cluster3.markers"]]
+```
+
+# skip
+```{r}
+library(purrr)
+
+clusters <- 0:35
+
+# 각 클러스터의 feature를 리스트로 저장
+# features <- map(clusters, ~ top10 %>% filter(cluster == as.character(.x)) %>% pull(gene))
+features <- map(clusters, ~ top20 %>% filter(cluster == as.character(.x)) %>% pull(gene))
+
+# 리스트 이름 지정 (feature_00, feature_01, ...)
+names(features) <- sprintf("feature_%02d", clusters)
+
+# 확인하기
+features[["feature_00"]]
+
+# Feature들을 module에 저장
+integrated <- reduce(
+  names(features), 
+  function(obj, feature_name) {
+    AddModuleScore(obj, 
+                   features = features[[feature_name]], 
+                   name = feature_name)
+  }, 
+  .init = integrated
+)
+
+
+
+
+# Module score를 확인하기 위한 feature list 저장
+features = c("feature_001", "feature_011", "feature_021",  "feature_141", "feature_031", "feature_051", "feature_301", "feature_311", 
+             "feature_061", "feature_081", "feature_161", "feature_251", 
+             "feature_101", "feature_181", "feature_221", "feature_331", 
+             "feature_041", "feature_071", "feature_111", "feature_261",
+             "feature_171", "feature_231", "feature_321",
+             "feature_211", "feature_191",
+              
+              
+  "feature_091",
+   "feature_121", "feature_131",
+  "feature_151", 
+  "feature_201",  "feature_241",
+   "feature_271", "feature_281", "feature_291",
+   "feature_341", 
+  "feature_351")
+```
+
+# skip
+## Module score visualization (dot plot)
+```{r}
+head(integrated@meta.data)
+rownames(integrated@meta.data) <- integrated@meta.data$cell
+
+Idents(integrated) = factor(integrated$seurat_clusters, 
+                                    levels=c("0", "1", "2", "14", "30", "31", "5", "3",   # Oligo
+                                             
+                                             "6", "8", "25", # Immune 
+                                             "16", # Tcell 
+                                             "10", "18", "22", "33",
+                                             
+                                             "4", "7", "11", "26", "21", "17", "23", "32",
+                                             
+                                             "35", "20", "13", 
+                                             "12", 
+                                             "9", "15", "19", 
+                                             "24", "27",  "29", 
+                                             "28", "34"))
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = features)
+```
+
+# DimPlot
+```{r}
+plot_path = paste0("~/Desktop/project/gbmoc/plot/v2.2/celltype/", version_num)
+ifelse(!dir.exists(file.path(plot_path)), dir.create(file.path(plot_path), recursive=TRUE), FALSE)
+
+pdf(paste0(plot_path, "/clustering_umap.pdf"), width=8, height=6)
+DimPlot(integrated, reduction="umap.harmony", label = TRUE, label.size=3, raster = TRUE)
+dev.off()
+pdf(paste0(plot_path, "/clustering_tsne.pdf"), width=8, height=6)
+DimPlot(integrated, reduction="tsne.harmony", label = TRUE, label.size=3, raster = TRUE)
+dev.off()
+
+reduction = "tsne.harmony"
+reduction = "umap.harmony"
+
+```
+
+```{r}
+# VlnPlot(integrated, features=c("nFeature_RNA", "nCount_RNA", "percent.mt"), raster=TRUE)
+VlnPlot(integrated, features=c("nFeature_RNA"), raster=FALSE, alpha=0)
+VlnPlot(integrated, features=c("nCount_RNA"), raster=FALSE, alpha=0)
+VlnPlot(integrated, features=c("percent.mt"), raster=FALSE, alpha=0)
+```
+
+v2.2
+```{r}
+# table(integrated@meta.data$celltype, integrated@meta.data$sample_type)
+table(integrated@meta.data$seurat_clusters, integrated@meta.data$patient_barcode)
+table(integrated@meta.data$seurat_clusters, integrated@meta.data$sample_barcode)
+```
+
+```{r}
+markers[["markers_04"]] # 
+markers[["markers_08"]] # MT-가 marker gene이라서 이상함
+markers[["markers_17"]] # Vascular, Endothelial, Angiogenesis 관련
+```
+"marker_04"
+"CRYAB" Crystallin alpha-B (CRYAB) is a molecular chaperone that apparently tries to stabilize the rapid thickening of the intermediate filaments of glial fibrillary acidic protein (GFAP) during the process of reactive astrogliosis in response to TBI. Previous analyses of the gene expression profile in human brain contusion tissue showed us an exacerbated CRYAB overexpression.
+"PTMA", glioma, malignancy, increase in PTMA expression with increasing histological grades of this malignancy. 
+"VEGFA" VEGFA mediates blood–brain barrier disruption in Parkinson disease
+
+
+"markers_17"
+"EBF1" EBF1 is highly expressed in peri-endothelial cells in both tumor vessels and in physiological conditions.
+"RBMS3" RBMS3-induced circHECTD1 encoded a novel protein to suppress the vasculogenic mimicry formation in glioblastoma multiforme.
+"UTRN" Summary of UTRN (DMDL, DRP, DRP1) expression in human brain tissue. Cytoplasmic and membranous expression in most tissues.
+"IGFBP7" Angiomodulin (IGFBP7) is a cerebral specific angiocrine factor, but is probably not a blood-brain barrier inducer.
+"FN1" The current study aimed to investigate the role by which fibronectin 1 (FN1) influences the cell cycle, senescence and apoptosis in human glioma cells.
+"COL1A2" The expression level of COL1A2 was upregulated in GBM compared with normal brain tissues.
+
+```{r}
+# TEST1
+feature = c("VEGFA", "VIM")
+  #markers[["markers_04"]]
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 3, dot.min = 0, dot.scale = 4,
+        features = feature) +
+   theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+  )
+
+feature1 = markers[["markers_14"]]
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 3, dot.min = 0, dot.scale = 4,
+        features = feature1) +
+   theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+  )
+
+feature2 = markers[["markers_08"]]
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 3, dot.min = 0, dot.scale = 4,
+        features = feature2) +
+   theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+  )
+
+
+# FeaturePlot(integrated, reduction=reduction,
+#             features = feature, min.cutoff = "q25", max.cutoff = "q75",
+#             pt.size = 1, raster=TRUE, ncol = 3) & NoAxes()
+
+# pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/immune_marker.pdf", width=10, height=6)
+# FeaturePlot(integrated, reduction=reduction, 
+#             features = feature, min.cutoff = "q25", max.cutoff = "q75", 
+#             pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+# dev.off()
+
+# pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/immune_module.pdf", width=3.5, height=3)
+# FeaturePlot(integrated, reduction=reduction,
+#             features = "Immune1",  min.cutoff = "q25", max.cutoff = "q75", 
+#             pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Immune module")
+# dev.off()
+```
+```{r}
+# TEST2
+feature = c("AQP4", "GLIS3", "GFAP")
+integrated <- AddModuleScore(integrated,
+                             features = feature,
+                             name = "TEST")
+
+FeaturePlot(integrated, reduction=reduction,
+            features = "Immune1",  min.cutoff = "q25", max.cutoff = "q75",
+            pt.size = 1, raster=TRUE, ncol = 1) & NoAxes()
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = c("Neuron1", "DLGAP2", "MYT1L", "SYT1", "NRG3", "MEG3", "FRMPD4"))
+```
+
+```{r}
+arrange(lv3_gbmap_scores, type)
+integrated@meta.data$celltype = "Unknown" # 4, 8, 14
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "2", "11", "16", "21" ) ] = "Immune"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "0", "1", "5", "7", "13", "15", "20" ) ] = "Oligodendrocyte"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "9", "12", "22" ) ] = "Neuron"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "17" ) ] = "Vascular"
+
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "10" ) ] = "Astrocyte"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "6" ) ] = "APC"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "19" ) ] = "NPC"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "3", "18" ) ] = "OPC"
+# in sctype
+# integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "3", "18", "19" ) ] = "OPC"
+# integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "14" ) ] = "NPC"
+# integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "4", "8" ) ] = "MES"
+
+my_color = c("Oligodendrocyte"="#A6CEE3", 
+             "Neuron"="#B2DF8A",
+             "NPC"="#33A02C",
+             "Astrocyte"="#FFC61E",
+             "APC"="#FF7F00",
+             "OPC"="#1F78B4",
+             "Immune"="#6A3D9A",
+             "Vascular"="#E31A1C",
+             "Unknown"="#2a2a2a"
+             )
+
+integrated@meta.data$stemness = "No"
+integrated@meta.data$stemness[integrated@meta.data$seurat_clusters %in% c( "3", "6", "10", "14", "18", "19" ) ] = "Yes"
+ 
+DimPlot(integrated, reduction="tsne.harmony", label = TRUE, label.size=3, raster = TRUE)
+
+DimPlot(integrated, reduction="umap.harmony", group.by="celltype", label = FALSE, label.size=3, raster = TRUE, cols=my_color) +
+  labs(title="", subtitle="") + theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold', size = 18),
+        plot.subtitle = element_text(hjust = 0.5, size = 13),
+        axis.title.x = element_text(size = 12, color="black"),
+        axis.title.y = element_text(size = 12, color="black"))
+
+my_color2 = c("Yes"="#E31A1C",
+             "No"="darkgrey")
+
+DimPlot(integrated, reduction="umap.harmony", group.by="stemness", label = FALSE, label.size=3, raster = TRUE, cols=my_color2) +
+  labs(title="", subtitle="") + theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold', size = 18),
+        plot.subtitle = element_text(hjust = 0.5, size = 13),
+        axis.title.x = element_text(size = 12, color="black"),
+        axis.title.y = element_text(size = 12, color="black"))
+```
+
+# Stemness check
+"3", "6", "10", "14", "18", "19"
+```{r}
+feature_stemness = c("PTPRZ1", "SOX5", "SOX6", "NRCAM", "GPM6A")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_stemness,
+                             name = "Stemness")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_stemness)
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = "Stemness1")
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_stemness, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/stemness_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_stemness, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/stemness_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Stemness1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Stemness module")
+dev.off()
+```
+
+
+
+# Cell type 1. Immune
+"2", "11", "16"
+PTPRC : protein tyrosine phosphatase receptor type C (PTPRC), also known as CD45, gene closely related to immune function.
+DOCK8 : DOCK8 protein is to help maintain the structure and integrity of immune cells called T cells and NK cells.
+IKZF1 : Gain-of-function IKZF1 variants in humans cause immune dysregulation associated with abnormal T/B cell late differentiation.
+FYB1 : FYB1 gene played important role in regulating self-renewal of T-ALL cells by activating IGLL1.
+APBB1IP : APBB1IP upregulation was found to be associated with increased immune cell infiltration, especially for CD8+ T cells, natural killer (NK) cells, and immune regulators.
+INPP5D : Acute inhibition of INPP5D induces alterations of RNA and protein expression profiles associated with innate immune processes./ INPP5D is well-characterized in negative regulation of immune cell activation.
+DOCK2 : DOCK2 (dedicator of cytokinesis 2) promotes indispensable antifungal innate immune signaling and proinflammatory gene expression in macrophages.
+
+*** 20 ?
+*** 21 immune 같음
+"CCL4L2", "CD83", "MSR1"
+CCL4L2 : CCL4L2 plays a key role in neutrophil functions during inflammation and asthma.
+CD83 : CD83 is a member of the immunoglobulin (Ig) superfamily and is expressed in membrane bound or soluble forms. Membrane CD83 (mCD83) can be detected on a variety of activated immune cells, although it is most highly and stably expressed by mature dendritic cells (DC)
+MSR1 : MSR1 macrophage scavenger receptor 1, This gene encodes the class A macrophage scavenger receptors, which include three different types (1, 2, 3) generated by alternative splicing of this gene.
+
+```{r}
+feature_immune = c("PTPRC", "DOCK8", "FYB1", "APBB1IP", "DOCK2",
+                   "CD74")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_immune,
+                             name = "Immune")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_immune)
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = "Immune1")
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_immune, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/immune_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_immune, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/immune_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Immune1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Immune module")
+dev.off()
+```
+
+# Cell type 2. Oligo 
+"0", "1", "5", "7", "13", "15", "20"
+```{r}
+feature_oligo = c("MOG", "TF", "ENPP2", "MOBP", "C10orf90", "MAP7")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_oligo,
+                             name = "Oligo")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_oligo)
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_oligo, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/oligo_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_oligo, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/oligo_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Oligo1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Oligo module")
+dev.off()
+```
+
+# Cell type 3. Neuron 
+"9", "12", "22"
+"DLGAP2" : family of Discs large associated protein 1, 2, 3 and 4 (DLGAP1-4) that act as scaffold proteins in the postsynaptic density. They link the glutamate receptors in the postsynaptic membrane to other glutamate receptors, to signalling proteins and to components of the cytoskeleton.
+"MYT1L" : MYT1L is an autism spectrum disorder (ASD)-associated transcription factor that is expressed in virtually all neurons throughout life.
+"SYT1" : Syt1's main function is to trigger neurotransmitter release in response to a presynaptic AP
+"NRG3" : Nrg3 is enriched in excitatory synapses on inhibitory neurons in vivo. In the hippocampus and the cortex, Nrg3 transcripts can be detected in both excitatory and inhibitory neurons
+"MEG3" : The long noncoding RNA MEG3 was strongly up-regulated in human neurons
+FRMPD4 : FRMPD4 is a neural scaffolding protein with abundant expression in the brain cortex and hippocampus
+```{r}
+feature_neuron = c("DLGAP2", "MYT1L", "SYT1", "NRG3", "MEG3", "SEZ6L")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_neuron,
+                             name = "Neuron")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_neuron)
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = "Neuron1")
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_neuron, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/neuron_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_neuron, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/neuron_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Neuron1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Neuron module")
+dev.off()
+```
+
+# Cell type 4. OPC
+
+```{r}
+feature_opc = c("TNR", "VCAN", "PDGFRA", "MMP16")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_opc,
+                             name = "OPC")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_opc)
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = "OPC1")
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_opc, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/opc_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_opc, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/opc_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "OPC1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "OPC module")
+dev.off()
+```
+
+# Cell type 5. NPC
+
+```{r}
+feature_npc = c("MEG3", "NRG3", "SLC1A2", "PDGFRA")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_npc,
+                             name = "NPC")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_npc)
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = "NPC1")
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_npc, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/npc_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_npc, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/npc_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "NPC1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "NPC module")
+dev.off()
+```
+
+# Cell type 6. Astrocyte
+
+```{r}
+feature_astro = c("GLIS3", "GFAP", "AQP4")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_astro,
+                             name = "Astro")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_astro)
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = "Astro1")
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_astro, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/astro_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_astro, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.2/celltype/astro_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Astro1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Astrocyte module")
+dev.off()
+```
+"GLIS3", "GFAP", "AQP4", "GPM6A"
+
+```{r}
+source("https://raw.githubusercontent.com/IanevskiAleksandr/sc-type/master/R/gene_sets_prepare.R")
+source("https://raw.githubusercontent.com/IanevskiAleksandr/sc-type/master/R/sctype_score_.R")
+lapply(c("dplyr","Seurat","HGNChelper","openxlsx", "tidyverse", "data.table", "pheatmap"), 
+       library, character.only = T)
+
+gbmap_ref_gene_set_file = "/Volumes/WindySSD/YUGBM_OC/reference/gbmap.xlsx"
+gs_list_lv3 = gene_sets_prepare(gbmap_ref_gene_set_file, "gbmap_lv3")
+
+lv3_es.max = sctype_score(scRNAseqData = integrated[["SCT"]]$scale.data, scaled = TRUE,
+                              gs = gs_list_lv3$gs_positive, gs2 = NULL)
+
+lv3_cL_resutls = do.call("rbind", lapply(unique(integrated@meta.data$seurat_clusters), function(cl){
+      lv3_es.max.cl = sort(rowSums(lv3_es.max[ ,rownames(integrated@meta.data[integrated@meta.data$seurat_clusters==cl, ])]), decreasing = !0)
+      head(data.frame(cluster = cl, type = names(lv3_es.max.cl), scores = lv3_es.max.cl, ncells = sum(integrated@meta.data$seurat_clusters==cl)), 10)
+    }))    
+    
+lv3_cL_resutls1 = lv3_cL_resutls %>% select(c("cluster", "type", "scores"))
+lv3_cL_resutls1$scores = ifelse(lv3_cL_resutls1$scores<0, 0, lv3_cL_resutls$scores)
+tmp = data.table(lv3_cL_resutls1)
+tmp = tmp %>% 
+    group_by(cluster) %>%
+    mutate(scale_score = scores/max(scores))
+tmp = tmp %>% select(c('cluster', 'type', 'scale_score'))
+tmp[is.na(tmp)] = 0
+tmp3 = pivot_wider(tmp, names_from=type, values_from=scale_score)
+tmp3 = tmp3 %>% remove_rownames %>% column_to_rownames(var="cluster")
+tmp3[is.na(tmp3)] = 0
+    
+lv3_gbmap_scores = lv3_cL_resutls %>% group_by(cluster) %>% top_n(n = 1, wt = scores)
+
+integrated@meta.data$gbmap3 = ""
+for(j in unique(lv3_gbmap_scores$cluster)){
+    lv3_cl_type = lv3_gbmap_scores[lv3_gbmap_scores$cluster==j,]; 
+    integrated@meta.data$gbmap3[integrated@meta.data$seurat_clusters == j] = as.character(lv3_cl_type$type[1])
+  }
+    
+pheatmap(tmp3,
+         display_numbers = T,
+         color=colorRampPalette(c("white","red"))(50))       
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# v2.1
+
+# TEST 
+```{r}
+# tumor cell? ("PTPRZ1", "SOX5", "SOX6", "NRCAM", "GPM6A") marker :
+# "4", "7", "11", "17", "21", "23", "24", "26", "27", "29", "32", "35" 
+table(integrated@meta.data$celltype, integrated@meta.data$sample_type)
+table(integrated@meta.data$seurat_clusters, integrated@meta.data$patient_barcode)
+
+```
+
+
+
+
+
+```{r}
+
+# Original filter
+min_cells = 3 
+min_features = 200 
+max_percent_mt = 10 
+min_nFeature_RNA = 500
+max_nFeature_RNA = 10000
+min_nCount_RNA = 1000
+max_nCount_RNA = 30000
+
+# filter 2
+min_cells = 3 
+min_features = 200 
+max_percent_mt = 5 
+min_nFeature_RNA = 500
+max_nFeature_RNA = 10000
+min_nCount_RNA = 1000
+max_nCount_RNA = 30000
+
+integrated_mt5 <- subset(integrated, 
+                       subset = 
+                         percent.mt < max_percent_mt &
+                         nFeature_RNA > min_nFeature_RNA & 
+                         nFeature_RNA < max_nFeature_RNA &
+                         nCount_RNA > min_nCount_RNA & 
+                         nCount_RNA < max_nCount_RNA )
+```
+
+
+
+```{r}
+#7, 26, 27, 29, 35 
+# integrated@meta.data$celltype = "Unknown"
+# integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "6", "8", "25", "16" ) ] = "Immune"
+# integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "0", "1", "2", "5", "9", "14", "15", "30", "31" ) ] = "Oligodendrocyte"
+# integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "4", "7", "11", "17", "21", "23", "24", "26", "27", "29", "32", "35" ) ] = "Stemness"
+# cluster_markers[["cluster12.markers"]]
+markers[["markers_03"]]
+
+markers[["markers_12"]] # 12, 16, 20, 35 -> Mito 발현이 엄청 높음 왜징......
+markers[["markers_13"]] # 13, 20, 35 -> Ribo 발현이 엄청 높음......
+
+markers[["markers_19"]] # collagen
+markers[["markers_20"]] # endo 정도 같음
+
+markers[["markers_28"]] # marker gene도 발현이 거의 없음... VEFGA, BACE2, LUCAT1 정도?
+markers[["markers_34"]] # immune?
+
+cluster_markers[["cluster12.markers"]] # Mito가 marker gene
+cluster_markers[["cluster16.markers"]]
+cluster_markers[["cluster20.markers"]]
+cluster_markers[["cluster35.markers"]] # Mito가 marker gene
+```
+
+```{r}
+# TEST1
+feature = markers[["markers_34"]]
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 3, dot.min = 0, dot.scale = 4,
+        features = feature) +
+   theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+  )
+
+# FeaturePlot(integrated, reduction=reduction,
+#             features = feature, min.cutoff = "q25", max.cutoff = "q75",
+#             pt.size = 1, raster=TRUE, ncol = 3) & NoAxes()
+
+# pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/immune_marker.pdf", width=10, height=6)
+# FeaturePlot(integrated, reduction=reduction, 
+#             features = feature, min.cutoff = "q25", max.cutoff = "q75", 
+#             pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+# dev.off()
+
+# pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/immune_module.pdf", width=3.5, height=3)
+# FeaturePlot(integrated, reduction=reduction,
+#             features = "Immune1",  min.cutoff = "q25", max.cutoff = "q75", 
+#             pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Immune module")
+# dev.off()
+```
+
+
+```{r}
+# TEST2
+feature = c("AQP4", "GLIS3", "GFAP")
+integrated <- AddModuleScore(integrated,
+                             features = feature,
+                             name = "TEST")
+
+FeaturePlot(integrated, reduction=reduction,
+            features = "Immune1",  min.cutoff = "q25", max.cutoff = "q75",
+            pt.size = 1, raster=TRUE, ncol = 1) & NoAxes()
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = c("Neuron1", "DLGAP2", "MYT1L", "SYT1", "NRG3", "MEG3", "FRMPD4"))
+```
+
+
+
+
+```{r}
+FeaturePlot(integrated, reduction=reduction,
+            features = c("AQP4", "GFAP"), min.cutoff = "q25", max.cutoff = "q75",
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes()
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = c("AQP4", "GFAP"))
+
+# AQP4 : 29
+# GFAP : 29, 35
+```
+
+```{r}
+feature_stemness = c("PTPRZ1", "SOX5", "SOX6", "NRCAM", "GPM6A")
+integrated <- AddModuleScore(integrated,
+                             features = feature_stemness,
+                             name = "Stemness")
+
+FeaturePlot(integrated, reduction=reduction,
+            features = "Stemness1",  min.cutoff = "q25", max.cutoff = "q75",
+            pt.size = 1, raster=TRUE, ncol = 1) & NoAxes()
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = c("Stemness1", "PTPRZ1", "SOX5", "SOX6", "NRCAM", "GPM6A"))
+```
+
+
+```{r}
+my_color = c("Oligodendrocyte"="#A6CEE3", 
+             "Immune"="#B2DF8A",
+             "Stemness"="#E31A1C", 
+             "OPC"="#1F78B4",
+             "Astrocyte"="#FFC61E",
+             "AC-like"="#602320",
+             "Unknown"="#2a2a2a",
+             "OPC-like"="#6A3D9A",
+             "MES-like"="#FF7F00",
+             "Vascular"="#CAB2D6",
+             "Neuron"="#33A02C")
+```
+
+----------------------------
+확정
+----------------------------
+```{r}
+integrated@meta.data$celltype = "Unknown"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "6", "8", "25", "16" ) ] = "Immune"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "0", "1", "2", "5", "9", "14", "15", "30", "31" ) ] = "Oligodendrocyte"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "10", "18", "22", "33" ) ] = "Neuron"
+integrated@meta.data$celltype[integrated@meta.data$seurat_clusters %in% c( "4", "7", "11", "17", "21", "23", "24", "26", "27", "29", "32", "35" ) ] = "Stemness"
+
+ 
+DimPlot(integrated, reduction="tsne.harmony", label = TRUE, label.size=3, raster = TRUE)
+
+DimPlot(integrated, reduction="umap.harmony", group.by="celltype", label = TRUE, label.size=3, raster = TRUE, cols=my_color) +
+  labs(title="", subtitle="") + theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, face = 'bold', size = 18),
+        plot.subtitle = element_text(hjust = 0.5, size = 13),
+        axis.title.x = element_text(size = 12, color="black"),
+        axis.title.y = element_text(size = 12, color="black"))
+```
+
+
+# Cell type 1. Immune 
+"6", "8", "25", "16"
+
+* infercnv ref = cluster "6", "8", "25", "16"
+(25는 조금 애매하지만 immune은 맞는거 같음)
+
+*** 34도 immune 같음
+"CCL4L2", "CD83", "MSR1"
+CCL4L2 : CCL4L2 plays a key role in neutrophil functions during inflammation and asthma.
+CD83 : CD83 is a member of the immunoglobulin (Ig) superfamily and is expressed in membrane bound or soluble forms. Membrane CD83 (mCD83) can be detected on a variety of activated immune cells, although it is most highly and stably expressed by mature dendritic cells (DC)
+MSR1 : MSR1 macrophage scavenger receptor 1, This gene encodes the class A macrophage scavenger receptors, which include three different types (1, 2, 3) generated by alternative splicing of this gene.
+
+```{r}
+markers[["markers_06"]]
+markers[["markers_08"]]
+markers[["markers_16"]]
+markers[["markers_25"]]
+```
+```{r}
+markers[["markers_16"]]
+```
+ 
+ PTPRC : protein tyrosine phosphatase receptor type C (PTPRC), also known as CD45, gene closely related to immune function.
+ DOCK8 : DOCK8 protein is to help maintain the structure and integrity of immune cells called T cells and NK cells.
+ IKZF1 : Gain-of-function IKZF1 variants in humans cause immune dysregulation associated with abnormal T/B cell late differentiation.
+ FYB1 : FYB1 gene played important role in regulating self-renewal of T-ALL cells by activating IGLL1.
+
+```{r}
+markers[["markers_06"]]
+markers[["markers_08"]]
+```
+APBB1IP : APBB1IP upregulation was found to be associated with increased immune cell infiltration, especially for CD8+ T cells, natural killer (NK) cells, and immune regulators.
+INPP5D : Acute inhibition of INPP5D induces alterations of RNA and protein expression profiles associated with innate immune processes./ INPP5D is well-characterized in negative regulation of immune cell activation.
+DOCK2 : DOCK2 (dedicator of cytokinesis 2) promotes indispensable antifungal innate immune signaling and proinflammatory gene expression in macrophages.
+
+```{r}
+feature_immune = c("PTPRC", "DOCK8", "IKZF1", "FYB1", "APBB1IP", "DOCK2")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_immune,
+                             name = "Immune")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_immune)
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_immune, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/immune_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_immune, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/immune_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Immune1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Immune module")
+dev.off()
+```
+
+# Cell type 2. Oligo 
+"0", "1", "2", "5", "9", "14", "15", "30", "31"
+
+```{r}
+feature_oligo = c("MOG", "TF", "ENPP2", "MOBP", "C10orf90", "MAP7")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_oligo,
+                             name = "Oligo")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_oligo)
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_oligo, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/oligo_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_oligo, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/oligo_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Oligo1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Oligo module")
+dev.off()
+```
+
+# Cell type 3. Neuron
+"10", "18", "22", "33"
+"DLGAP2", "MYT1L", "SYT1", "NRG3", "MEG3", "FRMPD4"
+
+```{r}
+markers[["markers_10"]]
+markers[["markers_18"]]
+markers[["markers_22"]]
+markers[["markers_33"]]
+```
+"DLGAP2" : family of Discs large associated protein 1, 2, 3 and 4 (DLGAP1-4) that act as scaffold proteins in the postsynaptic density. They link the glutamate receptors in the postsynaptic membrane to other glutamate receptors, to signalling proteins and to components of the cytoskeleton.
+"MYT1L" : MYT1L is an autism spectrum disorder (ASD)-associated transcription factor that is expressed in virtually all neurons throughout life.
+"SYT1" : Syt1's main function is to trigger neurotransmitter release in response to a presynaptic AP
+"NRG3" : Nrg3 is enriched in excitatory synapses on inhibitory neurons in vivo. In the hippocampus and the cortex, Nrg3 transcripts can be detected in both excitatory and inhibitory neurons
+"MEG3" : The long noncoding RNA MEG3 was strongly up-regulated in human neurons
+FRMPD4 : FRMPD4 is a neural scaffolding protein with abundant expression in the brain cortex and hippocampus
+
+```{r}
+feature_neuron = c("DLGAP2", "MYT1L", "SYT1", "NRG3", "MEG3", "FRMPD4")
+
+integrated <- AddModuleScore(integrated,
+                             features = feature_neuron,
+                             name = "Neuron")
+
+DotPlot(integrated, idents = integrated$seurat_clusters,
+        cols = c("lightgrey", "#133180"),
+        col.min = 0, col.max = 2, dot.min = 0, dot.scale = 4,
+        features = feature_neuron)
+
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_neuron, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+
+pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/neuron_marker.pdf", width=10, height=6)
+FeaturePlot(integrated, reduction=reduction, 
+            features = feature_neuron, min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 3) & NoAxes() 
+dev.off()
+
+pdf("~/Desktop/project/gbmoc/plot/v2.1/celltype/neuron_module.pdf", width=3.5, height=3)
+FeaturePlot(integrated, reduction=reduction,
+            features = "Neuron1",  min.cutoff = "q25", max.cutoff = "q75", 
+            pt.size = 1, raster=TRUE, ncol = 1) + NoAxes() + labs(title = "Neuron module")
+dev.off()
+```
+
+
+
